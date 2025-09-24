@@ -1,1 +1,43 @@
-<h1>Hello Frontend</h1>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback Formular</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        input, textarea, button {
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #0070f3;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0059c9;
+        }
+    </style>
+</head>
+<body>
+<h1>Feedback Formular</h1>
+<form action="https://dein-n8n-server/webhook/feedback" method="POST">
+    <input type="text" name="user" placeholder="Dein Name" required>
+    <input type="number" name="rating" min="1" max="5" required>
+    <textarea name="comment" placeholder="Dein Feedback"></textarea>
+    <button type="submit">Absenden</button>
+</form>
+</body>
+</html>
