@@ -8,26 +8,20 @@
             font-family: "Fira Code", monospace;
             background: #0d1117;
             color: #e6edf3;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             padding: 2rem;
         }
-
         .card {
             background: #161b22;
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 12px;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-            width: 400px;
             margin-bottom: 2rem;
+            max-width: 500px;
         }
-
         h1 {
-            text-align: center;
             color: #58a6ff;
+            margin-bottom: 1rem;
         }
-
         input, textarea, button {
             width: 100%;
             margin: 0.5rem 0;
@@ -37,7 +31,6 @@
             background: #0d1117;
             color: #e6edf3;
         }
-
         button {
             background: linear-gradient(90deg, #58a6ff, #00ffc6);
             color: #0d1117;
@@ -45,31 +38,26 @@
             cursor: pointer;
             transition: 0.2s;
         }
-
         button:hover {
             background: linear-gradient(90deg, #00ffc6, #58a6ff);
-            transform: scale(1.02);
         }
-
         table {
             border-collapse: collapse;
             width: 100%;
             background: #161b22;
-            border-radius: 12px;
+            border-radius: 8px;
             overflow: hidden;
+            margin-top: 1rem;
         }
-
         th, td {
             padding: 10px;
             border-bottom: 1px solid #30363d;
             text-align: left;
         }
-
         th {
             background: #21262d;
             color: #58a6ff;
         }
-
         tr:hover {
             background: #21262d;
         }
@@ -77,67 +65,68 @@
 </head>
 <body>
 <div class="card">
-    <h1>&lt;/&gt; Feedback</h1>
+    <h1>&lt;/&gt; Feedback abgeben</h1>
     <form id="feedbackForm">
         <input type="text" name="user" placeholder="Username" required>
         <input type="number" name="rating" min="1" max="5" placeholder="Rating (1–5)" required>
         <textarea name="comment" rows="3" placeholder="Dein Feedback..."></textarea>
-        <button type="submit">>> Absenden</button>
+        <button type="submit">Absenden</button>
     </form>
 </div>
 
-<div class="card" style="width: 600px;">
-    <h1>Feedback-Tabelle</h1>
-    <table id="feedbackTable">
-        <thead>
-        <tr>
-            <th>User</th>
-            <th>Rating</th>
-            <th>Kommentar</th>
-            <th>Datum</th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+<h1>Feedback-Tabelle</h1>
+<table id="feedbackTable">
+    <thead>
+    <tr>
+        <th>User</th>
+        <th>Rating</th>
+        <th>Kommentar</th>
+        <th>Datum</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
 
 <script>
+    const submitUrl = "https://n8n.agentsmithery.de/webhook/8a8c3c6a-24c4-40e5-abc3-a99c7b733928";
     const form = document.getElementById('feedbackForm');
     const tableBody = document.querySelector('#feedbackTable tbody');
 
-    // API Endpoints von n8n
-    const submitUrl = "https://n8n.agentsmithery.de/webhook/8a8c3c6a-24c4-40e5-abc3-a99c7b733928";
-    const listUrl   = "https://n8n.agentsmithery.de/webhook/bfc6f8b2-9ef7-4d6f-9c9e-ba567e9fb911";
-
+    // Formular absenden → POST → Antwort (Liste) in Tabelle rendern
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
-        await fetch(submitUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-        form.reset();
-        loadFeedback();
+
+        try {
+            const res = await fetch(submitUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            const feedbackList = await res.json(); // komplette Liste kommt aus n8n
+            renderTable(feedbackList);
+
+            form.reset();
+        } catch (err) {
+            console.error("Fehler beim Absenden:", err);
+        }
     });
 
-    async function loadFeedback() {
-        const res = await fetch(listUrl);
-        const data = await res.json();
+    function renderTable(data) {
         tableBody.innerHTML = "";
         data.forEach(item => {
-            const row = `<tr>
+            const row = document.createElement("tr");
+            row.innerHTML = `
           <td>${item.user}</td>
           <td>${item.rating}</td>
           <td>${item.comment}</td>
           <td>${new Date(item.created_at).toLocaleString()}</td>
-        </tr>`;
-            tableBody.innerHTML += row;
+        `;
+            tableBody.appendChild(row);
         });
     }
-
-    loadFeedback();
 </script>
 </body>
 </html>
