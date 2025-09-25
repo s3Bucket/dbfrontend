@@ -61,44 +61,6 @@
         tr:hover {
             background: #21262d;
         }
-
-        #chatbox {
-            display: flex; flex-direction: column;
-            width: 400px; height: 500px;
-            border: 1px solid #333; border-radius: 10px;
-            background: #fff; color: black;
-        }
-        #messages {
-            flex: 1; padding: 10px; overflow-y: auto;
-        }
-        .message { margin: 6px 0; }
-        .user { text-align: right; }
-        .user span {
-            background: #007bff; color: white;
-            padding: 6px 10px; border-radius: 12px;
-            display: inline-block; max-width: 70%;
-            word-wrap: break-word;
-        }
-        .bot span {
-            background: #e5e5ea; color: black;
-            padding: 6px 10px; border-radius: 12px;
-            display: inline-block; max-width: 70%;
-            word-wrap: break-word;
-        }
-        #inputArea {
-            display: flex; padding: 8px; border-top: 1px solid #ccc;
-            background: #f7f7f7;
-        }
-        #msgInput {
-            flex: 1; padding: 10px; font-size: 14px;
-            border: 1px solid #ccc; border-radius: 6px;
-        }
-        #sendBtn {
-            margin-left: 8px; padding: 10px 14px; font-size: 14px;
-            border: none; border-radius: 6px;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            color: black; font-weight: bold; cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -111,15 +73,6 @@
         <button type="submit">Absenden</button>
     </form>
 </div>
-
-<div id="chatbox">
-    <div id="messages"></div>
-    <div id="inputArea">
-        <input id="msgInput" type="text" placeholder="Schreib etwas..." />
-        <button id="sendBtn">Senden</button>
-    </div>
-</div>
-
 
 <h1>Feedback-Tabelle</h1>
 <table id="feedbackTable">
@@ -174,55 +127,6 @@
             tableBody.appendChild(row);
         });
     }
-
-
-    const chat = document.getElementById("messages");
-    const input = document.getElementById("msgInput");
-    const sendBtn = document.getElementById("sendBtn");
-
-    // Session-ID speichern
-    let sessionId = localStorage.getItem("chatSessionId");
-    if (!sessionId) {
-        sessionId = self.crypto.randomUUID();
-        localStorage.setItem("chatSessionId", sessionId);
-    }
-
-    async function sendMessage() {
-        const text = input.value.trim();
-        if (!text) return;
-
-        addMessage("user", text);
-        input.value = "";
-        input.focus();
-
-        try {
-            const res = await fetch("https://n8n.agentsmithery.de/webhook/1bb27744-9110-4ec9-9d57-778349a3f387/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sessionId, message: text })
-            });
-            const data = await res.json();
-            addMessage("bot", data.reply || "Keine Antwort erhalten");
-        } catch (err) {
-            addMessage("bot", "⚠️ Fehler bei der Verbindung mit n8n.");
-        }
-    }
-
-    function addMessage(sender, text) {
-        const div = document.createElement("div");
-        div.className = "message " + sender;
-        div.innerHTML = `<span>${text}</span>`;
-        chat.appendChild(div);
-        chat.scrollTop = chat.scrollHeight;
-    }
-
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
 </script>
 </body>
 </html>
