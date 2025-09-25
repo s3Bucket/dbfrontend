@@ -61,6 +61,29 @@
         tr:hover {
             background: #21262d;
         }
+        #chat {
+            width: 400px; height: 400px;
+            border: 1px solid #ccc; border-radius: 8px;
+            margin: 30px auto; padding: 10px;
+            overflow-y: auto; background: white;
+        }
+        .message { margin: 6px 0; }
+        .user { text-align: right; }
+        .user span {
+            background: #007bff; color: white;
+            padding: 6px 10px; border-radius: 12px;
+            display: inline-block; max-width: 70%;
+            word-wrap: break-word;
+        }
+        .bot span {
+            background: #e5e5ea; color: black;
+            padding: 6px 10px; border-radius: 12px;
+            display: inline-block; max-width: 70%;
+            word-wrap: break-word;
+        }
+        #inputArea { width: 400px; margin: 10px auto; display: flex; }
+        #msgInput { flex: 1; padding: 8px; }
+        #sendBtn { padding: 8px 12px; }
     </style>
 </head>
 <body>
@@ -72,6 +95,12 @@
         <textarea name="comment" rows="3" placeholder="Dein Feedback..."></textarea>
         <button type="submit">Absenden</button>
     </form>
+</div>
+
+<div id="chat"></div>
+<div id="inputArea">
+    <input id="msgInput" type="text" placeholder="Schreib etwas..." />
+    <button id="sendBtn">Senden</button>
 </div>
 
 <h1>Feedback-Tabelle</h1>
@@ -127,6 +156,56 @@
             tableBody.appendChild(row);
         });
     }
+
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("msgInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    // 🔑 Session-ID einmalig erzeugen und im LocalStorage merken
+    let sessionId = localStorage.getItem("chatSessionId");
+    if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem("chatSessionId", sessionId);
+    }
+
+    async function sendMessage() {
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Nachricht im UI anzeigen
+        addMessage("user", text);
+        input.value = "";
+
+        try {
+            // An deinen n8n-Webhook-Agenten schicken
+            const res = await fetch("https://n8n.agentsmithery.de/webhook/1bb27744-9110-4ec9-9d57-778349a3f387/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionId, message: text })
+            });
+
+            const data = await res.json();
+
+            // Antwort anzeigen
+            addMessage("bot", data.reply || "Keine Antwort erhalten");
+        } catch (err) {
+            addMessage("bot", "⚠️ Fehler bei der Verbindung mit n8n.");
+            console.error(err);
+        }
+    }
+
+    function addMessage(sender, text) {
+        const div = document.createElement("div");
+        div.className = "message " + sender;
+        div.innerHTML = `<span>${text}</span>`;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight; // immer nach unten scrollen
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMessage();
+    });
 </script>
 </body>
 </html>
