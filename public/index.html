@@ -196,7 +196,7 @@
         input.focus();
 
         try {
-            const res = await fetch("https://DEINE-N8N-URL/webhook/chat", {
+            const res = await fetch("https://n8n.agentsmithery.de/webhook/1bb27744-9110-4ec9-9d57-778349a3f387/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ sessionId, message: text })
